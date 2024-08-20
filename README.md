@@ -15,7 +15,23 @@ This project integrates OpenAI's GPT models with PostgreSQL, allowing for AI-pow
 - Docker Compose
 - OpenAI API Key
 
-## Setup
+## Installation
+
+You can install this project in two ways:
+
+### Option 1: Using the pre-built Docker image
+
+1. Pull the image from the command line:
+   ```bash
+   docker pull ghcr.io/data2json/postresql-openai:v0.0.1
+   ```
+
+2. Use as base image in your Dockerfile:
+   ```dockerfile
+   FROM ghcr.io/data2json/postresql-openai:v0.0.1
+   ```
+
+### Option 2: Building from source
 
 1. Clone the repository:
    ```
