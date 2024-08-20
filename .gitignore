@@ -1,0 +1,54 @@
+# Environment variables
+.env
+
+# Python virtual environment
+venv/
+*.pyc
+__pycache__/
+
+# PostgreSQL data
+postgres_data/
+
+# Logs
+*.log
+
+# Docker
+.docker/
+
+# IDE-specific files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Operating System Files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+*~
+
+# Node modules (if you decide to add a frontend later)
+node_modules/
+
+# Compiled Python files
+*.pyc
+
+# Python cache
+__pycache__/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# pytest
+.pytest_cache/
+
+# Coverage reports
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+*.cover
