@@ -76,6 +76,20 @@ Once the container is up and running, you can connect to the PostgreSQL database
 ![image](https://github.com/user-attachments/assets/fe315574-987b-433e-ab8e-e1817a48ed67)
 
 
+```
+curl -X POST "http://192.168.2.2:3000/mydb/public/ai_responses" -H "Content-Type: application/json" -d '{"input_text": "Hi mom!"}'  | jq 
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100   109  100    84  100    25    131     39 --:--:-- --:--:-- --:--:--   172
+{
+  "id": 3,
+  "input_text": "Hi mom!",
+  "ai_response": "Hello sweetie! How's your day going?"
+}
+```
+
+
+
 ## Project Structure
 
 - `Dockerfile`: Defines the PostgreSQL image with Python and OpenAI integration
