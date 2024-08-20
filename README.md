@@ -72,6 +72,10 @@ Once the container is up and running, you can connect to the PostgreSQL database
    SELECT * FROM ai_responses ORDER BY id DESC LIMIT 1;
    ```
 
+## Example
+![image](https://github.com/user-attachments/assets/fe315574-987b-433e-ab8e-e1817a48ed67)
+
+
 ## Project Structure
 
 - `Dockerfile`: Defines the PostgreSQL image with Python and OpenAI integration
