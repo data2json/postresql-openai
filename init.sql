@@ -1,5 +1,7 @@
-SET client_encoding = 'UTF8';
 
+--
+-- Name: plpython3u; Type: EXTENSION; Schema: -; Owner: -
+--
 
 CREATE EXTENSION IF NOT EXISTS plpython3u WITH SCHEMA pg_catalog;
 
@@ -157,6 +159,168 @@ $$;
 ALTER FUNCTION public.check_typing_extensions() OWNER TO postgres;
 
 --
+-- Name: creative_thinking_workflow(text); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE FUNCTION public.creative_thinking_workflow(input_prompt text) RETURNS TABLE(original_prompt text, generated_ideas text, explored_implications text, final_concept text)
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+    RETURN QUERY
+    WITH idea_generation AS (
+        SELECT build_and_submit_conversation('generate_ideas', (
+            json_build_object(
+                'prompt', input_prompt,
+                'language', 'en'
+            )
+        )::text) AS ideas
+    ),
+    idea_exploration AS (
+        SELECT build_and_submit_conversation('explore_implications', (
+            json_build_object(
+                'prompt', input_prompt,
+                'ideas', (SELECT ideas FROM idea_generation),
+                'language', 'en'
+            )
+        )::text) AS implications
+    ),
+    concept_formation AS (
+        SELECT build_and_submit_conversation('form_new_concept', (
+            json_build_object(
+                'prompt', input_prompt,
+                'ideas', (SELECT ideas FROM idea_generation),
+                'implications', (SELECT implications FROM idea_exploration),
+                'language', 'en'
+            )
+        )::text) AS concept
+    )
+    SELECT
+        input_prompt,
+        (SELECT ideas FROM idea_generation),
+        (SELECT implications FROM idea_exploration),
+        (SELECT concept FROM concept_formation);
+END;
+$$;
+
+
+ALTER FUNCTION public.creative_thinking_workflow(input_prompt text) OWNER TO postgres;
+
+--
+-- Name: FUNCTION creative_thinking_workflow(input_prompt text); Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON FUNCTION public.creative_thinking_workflow(input_prompt text) IS 'This function encapsulates a creative thinking workflow, generating ideas, exploring their implications, and forming a new concept or solution.';
+
+
+--
+-- Name: critical_thinking_workflow(text); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE FUNCTION public.critical_thinking_workflow(input_info text) RETURNS TABLE(original_information text, information_analysis text, evidence_evaluation text, final_conclusion text)
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+    RETURN QUERY
+    WITH information_analysis AS (
+        SELECT build_and_submit_conversation('analyze_information', (
+            json_build_object(
+                'information', input_info,
+                'language', 'en'
+            )
+        )::text) AS analysis
+    ),
+    evidence_evaluation AS (
+        SELECT build_and_submit_conversation('evaluate_evidence', (
+            json_build_object(
+                'information', input_info,
+                'analysis', (SELECT analysis FROM information_analysis),
+                'language', 'en'
+            )
+        )::text) AS evaluation
+    ),
+    conclusion_formation AS (
+        SELECT build_and_submit_conversation('form_conclusion', (
+            json_build_object(
+                'information', input_info,
+                'analysis', (SELECT analysis FROM information_analysis),
+                'evaluation', (SELECT evaluation FROM evidence_evaluation),
+                'language', 'en'
+            )
+        )::text) AS conclusion
+    )
+    SELECT
+        input_info,
+        (SELECT analysis FROM information_analysis),
+        (SELECT evaluation FROM evidence_evaluation),
+        (SELECT conclusion FROM conclusion_formation);
+END;
+$$;
+
+
+ALTER FUNCTION public.critical_thinking_workflow(input_info text) OWNER TO postgres;
+
+--
+-- Name: FUNCTION critical_thinking_workflow(input_info text); Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON FUNCTION public.critical_thinking_workflow(input_info text) IS 'This function encapsulates a critical thinking workflow, analyzing information, evaluating evidence, and forming a conclusion or argument.';
+
+
+--
+-- Name: decision_making_workflow(text); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE FUNCTION public.decision_making_workflow(input_scenario text) RETURNS TABLE(original_scenario text, generated_options text, pros_cons_analysis text, final_decision text)
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+    RETURN QUERY
+    WITH option_generation AS (
+        SELECT build_and_submit_conversation('generate_options', (
+            json_build_object(
+                'scenario', input_scenario,
+                'language', 'en'
+            )
+        )::text) AS options
+    ),
+    pros_cons_analysis AS (
+        SELECT build_and_submit_conversation('analyze_pros_cons', (
+            json_build_object(
+                'scenario', input_scenario,
+                'options', (SELECT options FROM option_generation),
+                'language', 'en'
+            )
+        )::text) AS analysis
+    ),
+    decision_formation AS (
+        SELECT build_and_submit_conversation('form_decision', (
+            json_build_object(
+                'scenario', input_scenario,
+                'options', (SELECT options FROM option_generation),
+                'analysis', (SELECT analysis FROM pros_cons_analysis),
+                'language', 'en'
+            )
+        )::text) AS decision
+    )
+    SELECT
+        input_scenario,
+        (SELECT options FROM option_generation),
+        (SELECT analysis FROM pros_cons_analysis),
+        (SELECT decision FROM decision_formation);
+END;
+$$;
+
+
+ALTER FUNCTION public.decision_making_workflow(input_scenario text) OWNER TO postgres;
+
+--
+-- Name: FUNCTION decision_making_workflow(input_scenario text); Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON FUNCTION public.decision_making_workflow(input_scenario text) IS 'This function encapsulates a decision-making workflow, generating options, analyzing pros and cons, and forming a decision.';
+
+
+--
 -- Name: get_input_context(text); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -281,6 +445,36 @@ ALTER FUNCTION public.meta_cognitive_workflow(input_context text) OWNER TO postg
 --
 
 COMMENT ON FUNCTION public.meta_cognitive_workflow(input_context text) IS 'This function encapsulates the meta-cognitive workflow. It takes an input context as a parameter and returns the results of each step in the workflow.';
+
+
+--
+-- Name: problem_solving_workflow(text); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE FUNCTION public.problem_solving_workflow(input_problem text) RETURNS TABLE(original_problem text, problem_breakdown text)
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        input_problem,
+        build_and_submit_conversation('problem_breakdown', (
+            json_build_object(
+                'problem', input_problem,
+                'language', 'en'
+            )
+        )::text);
+END;
+$$;
+
+
+ALTER FUNCTION public.problem_solving_workflow(input_problem text) OWNER TO postgres;
+
+--
+-- Name: FUNCTION problem_solving_workflow(input_problem text); Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON FUNCTION public.problem_solving_workflow(input_problem text) IS 'This is a semi-complex version of the problem-solving workflow function for testing purposes.';
 
 
 --
@@ -445,6 +639,123 @@ ALTER SEQUENCE public.conversation_templates_id_seq OWNED BY public.conversation
 
 
 --
+-- Name: creative_thinking_workflow; Type: VIEW; Schema: public; Owner: postgres
+--
+
+CREATE VIEW public.creative_thinking_workflow AS
+ WITH RECURSIVE input_prompt AS (
+         SELECT public.get_input_context(NULL::text) AS context
+        ), idea_generation AS (
+         SELECT public.build_and_submit_conversation('generate_ideas'::text, (json_build_object('prompt', ( SELECT input_prompt.context
+                   FROM input_prompt), 'language', 'en'))::text) AS ideas
+        ), idea_exploration AS (
+         SELECT public.build_and_submit_conversation('explore_implications'::text, (json_build_object('prompt', ( SELECT input_prompt.context
+                   FROM input_prompt), 'ideas', ( SELECT idea_generation.ideas
+                   FROM idea_generation), 'language', 'en'))::text) AS implications
+        ), concept_formation AS (
+         SELECT public.build_and_submit_conversation('form_new_concept'::text, (json_build_object('prompt', ( SELECT input_prompt.context
+                   FROM input_prompt), 'ideas', ( SELECT idea_generation.ideas
+                   FROM idea_generation), 'implications', ( SELECT idea_exploration.implications
+                   FROM idea_exploration), 'language', 'en'))::text) AS concept
+        )
+ SELECT ( SELECT input_prompt.context
+           FROM input_prompt) AS input_prompt,
+    ( SELECT idea_generation.ideas
+           FROM idea_generation) AS generated_ideas,
+    ( SELECT idea_exploration.implications
+           FROM idea_exploration) AS explored_implications,
+    ( SELECT concept_formation.concept
+           FROM concept_formation) AS final_concept;
+
+
+ALTER VIEW public.creative_thinking_workflow OWNER TO postgres;
+
+--
+-- Name: VIEW creative_thinking_workflow; Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON VIEW public.creative_thinking_workflow IS 'This view encapsulates a creative thinking workflow, generating ideas, exploring their implications, and forming a new concept or solution.';
+
+
+--
+-- Name: critical_thinking_workflow; Type: VIEW; Schema: public; Owner: postgres
+--
+
+CREATE VIEW public.critical_thinking_workflow AS
+ WITH RECURSIVE input_information AS (
+         SELECT public.get_input_context(NULL::text) AS context
+        ), information_analysis AS (
+         SELECT public.build_and_submit_conversation('analyze_information'::text, (json_build_object('information', ( SELECT input_information.context
+                   FROM input_information), 'language', 'en'))::text) AS analysis
+        ), evidence_evaluation AS (
+         SELECT public.build_and_submit_conversation('evaluate_evidence'::text, (json_build_object('information', ( SELECT input_information.context
+                   FROM input_information), 'analysis', ( SELECT information_analysis.analysis
+                   FROM information_analysis), 'language', 'en'))::text) AS evaluation
+        ), conclusion_formation AS (
+         SELECT public.build_and_submit_conversation('form_conclusion'::text, (json_build_object('information', ( SELECT input_information.context
+                   FROM input_information), 'analysis', ( SELECT information_analysis.analysis
+                   FROM information_analysis), 'evaluation', ( SELECT evidence_evaluation.evaluation
+                   FROM evidence_evaluation), 'language', 'en'))::text) AS conclusion
+        )
+ SELECT ( SELECT input_information.context
+           FROM input_information) AS input_information,
+    ( SELECT information_analysis.analysis
+           FROM information_analysis) AS information_analysis,
+    ( SELECT evidence_evaluation.evaluation
+           FROM evidence_evaluation) AS evidence_evaluation,
+    ( SELECT conclusion_formation.conclusion
+           FROM conclusion_formation) AS final_conclusion;
+
+
+ALTER VIEW public.critical_thinking_workflow OWNER TO postgres;
+
+--
+-- Name: VIEW critical_thinking_workflow; Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON VIEW public.critical_thinking_workflow IS 'This view encapsulates a critical thinking workflow, analyzing information, evaluating evidence, and forming a conclusion or argument.';
+
+
+--
+-- Name: decision_making_workflow; Type: VIEW; Schema: public; Owner: postgres
+--
+
+CREATE VIEW public.decision_making_workflow AS
+ WITH RECURSIVE input_scenario AS (
+         SELECT public.get_input_context(NULL::text) AS context
+        ), option_generation AS (
+         SELECT public.build_and_submit_conversation('generate_options'::text, (json_build_object('scenario', ( SELECT input_scenario.context
+                   FROM input_scenario), 'language', 'en'))::text) AS options
+        ), pros_cons_analysis AS (
+         SELECT public.build_and_submit_conversation('analyze_pros_cons'::text, (json_build_object('scenario', ( SELECT input_scenario.context
+                   FROM input_scenario), 'options', ( SELECT option_generation.options
+                   FROM option_generation), 'language', 'en'))::text) AS analysis
+        ), decision_formation AS (
+         SELECT public.build_and_submit_conversation('form_decision'::text, (json_build_object('scenario', ( SELECT input_scenario.context
+                   FROM input_scenario), 'options', ( SELECT option_generation.options
+                   FROM option_generation), 'analysis', ( SELECT pros_cons_analysis.analysis
+                   FROM pros_cons_analysis), 'language', 'en'))::text) AS decision
+        )
+ SELECT ( SELECT input_scenario.context
+           FROM input_scenario) AS input_scenario,
+    ( SELECT option_generation.options
+           FROM option_generation) AS generated_options,
+    ( SELECT pros_cons_analysis.analysis
+           FROM pros_cons_analysis) AS pros_cons_analysis,
+    ( SELECT decision_formation.decision
+           FROM decision_formation) AS final_decision;
+
+
+ALTER VIEW public.decision_making_workflow OWNER TO postgres;
+
+--
+-- Name: VIEW decision_making_workflow; Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON VIEW public.decision_making_workflow IS 'This view encapsulates a decision-making workflow, generating options, analyzing pros and cons, and forming a decision.';
+
+
+--
 -- Name: meta_cognitive_workflow; Type: VIEW; Schema: public; Owner: postgres
 --
 
@@ -516,6 +827,44 @@ COMMENT ON VIEW public.meta_cognitive_workflow IS 'This view encapsulates the me
 
 
 --
+-- Name: problem_solving_workflow; Type: VIEW; Schema: public; Owner: postgres
+--
+
+CREATE VIEW public.problem_solving_workflow AS
+ WITH RECURSIVE input_problem AS (
+         SELECT public.get_input_context(NULL::text) AS context
+        ), problem_breakdown AS (
+         SELECT public.build_and_submit_conversation('problem_breakdown'::text, (json_build_object('problem', ( SELECT input_problem.context
+                   FROM input_problem), 'language', 'en'))::text) AS parts
+        ), solution_generation AS (
+         SELECT public.build_and_submit_conversation('generate_solutions'::text, (json_build_object('problem_parts', ( SELECT problem_breakdown.parts
+                   FROM problem_breakdown), 'language', 'en'))::text) AS solutions
+        ), plan_formation AS (
+         SELECT public.build_and_submit_conversation('form_cohesive_plan'::text, (json_build_object('problem', ( SELECT input_problem.context
+                   FROM input_problem), 'problem_parts', ( SELECT problem_breakdown.parts
+                   FROM problem_breakdown), 'solutions', ( SELECT solution_generation.solutions
+                   FROM solution_generation), 'language', 'en'))::text) AS plan
+        )
+ SELECT ( SELECT input_problem.context
+           FROM input_problem) AS input_problem,
+    ( SELECT problem_breakdown.parts
+           FROM problem_breakdown) AS problem_breakdown,
+    ( SELECT solution_generation.solutions
+           FROM solution_generation) AS solution_generation,
+    ( SELECT plan_formation.plan
+           FROM plan_formation) AS final_plan;
+
+
+ALTER VIEW public.problem_solving_workflow OWNER TO postgres;
+
+--
+-- Name: VIEW problem_solving_workflow; Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON VIEW public.problem_solving_workflow IS 'This view encapsulates a problem-solving workflow, breaking down a complex problem, generating solutions, and forming a cohesive plan.';
+
+
+--
 -- Name: ai_responses id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -529,6 +878,13 @@ ALTER TABLE ONLY public.ai_responses ALTER COLUMN id SET DEFAULT nextval('public
 ALTER TABLE ONLY public.conversation_templates ALTER COLUMN id SET DEFAULT nextval('public.conversation_templates_id_seq'::regclass);
 
 
+--
+-- Data for Name: ai_responses; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.ai_responses (id, input_text, ai_response) FROM stdin;
+5	Why is the sky blue?	The sky appears blue due to a phenomenon called Rayleigh scattering. When sunlight enters Earth's atmosphere, it encounters tiny molecules of gases such as nitrogen and oxygen. These molecules scatter the shorter, blue wavelengths of light more than the longer, red wavelengths, giving the sky its blue color.
+\.
 
 
 --
@@ -544,6 +900,18 @@ COPY public.conversation_templates (id, name, template) FROM stdin;
 6	fill_template	[{"role": "system", "content": "You are an expert in applying reasoning strategies and filling in templates."}, {"role": "user", "content": "Fill in the following template based on the given analysis and class labels:\\n\\nTemplate: {template}\\nAnalysis: {analysis}\\nClass Labels: {class_labels}\\n\\nProvide your answer as the completed template."}]
 7	final_completion	[{"role": "system", "content": "You are a meta-cognitive reasoning expert capable of synthesizing information and providing insightful conclusions."}, {"role": "user", "content": "Based on the following filled template, analysis, and class labels, provide a final completion that includes:\\n1. A summary of the reasoning process\\n2. An evaluation of the strength of the conclusion\\n3. Suggestions for further investigation or alternative perspectives\\n\\nContext: {filled_template}\\nAnalysis: {analysis}\\nClass Labels: {class_labels}\\n\\nProvide your answer in a clear, structured format."}]
 8	final_answer	[{"role": "system", "content": "You are a meta-cognitive reasoning expert capable of synthesizing information and providing insightful conclusions."}, {"role": "user", "content": "Below is a conversation between a user and a helpful assistant. Generate an accurate completion based on the context.\\n\\nContext: {filled_template}\\nInput: {input_data}\\nOutput:"}]
+9	problem_breakdown	[{"role": "system", "content": "You are an expert in problem analysis and breakdown."}, {"role": "user", "content": "Break down the following problem into smaller, manageable parts:\\\\n\\\\nProblem: {problem}\\\\n\\\\nProvide your answer as a numbered list of sub-problems or components."}]
+10	generate_solutions	[{"role": "system", "content": "You are an expert in generating solutions for complex problems."}, {"role": "user", "content": "Generate potential solutions for each part of the following problem breakdown:\\\\n\\\\nProblem parts: {problem_parts}\\\\n\\\\nProvide your answer as a numbered list corresponding to each problem part, with potential solutions listed under each part."}]
+11	form_cohesive_plan	[{"role": "system", "content": "You are an expert in synthesizing solutions into comprehensive plans."}, {"role": "user", "content": "Create a cohesive plan by connecting the solutions to the following problem:\\\\n\\\\nOriginal problem: {problem}\\\\n\\\\nProblem breakdown: {problem_parts}\\\\n\\\\nProposed solutions: {solutions}\\\\n\\\\nProvide your answer as a step-by-step plan that addresses the original problem."}]
+13	generate_options	[{"role": "system", "content": "You are an expert in identifying potential options for decision-making scenarios."}, {"role": "user", "content": "Generate a list of potential options for the following scenario:\\\\n\\\\nScenario: {scenario}\\\\n\\\\nProvide your answer as a numbered list of options."}]
+14	analyze_pros_cons	[{"role": "system", "content": "You are an expert in analyzing the pros and cons of different options."}, {"role": "user", "content": "Analyze the pros and cons of each option for the following scenario:\\\\n\\\\nScenario: {scenario}\\\\n\\\\nOptions: {options}\\\\n\\\\nProvide your analysis in a structured format, listing pros and cons for each option."}]
+15	form_decision	[{"role": "system", "content": "You are an expert in making informed decisions based on pros and cons analysis."}, {"role": "user", "content": "Form a decision based on the following scenario, options, and analysis:\\\\n\\\\nScenario: {scenario}\\\\n\\\\nOptions: {options}\\\\n\\\\nAnalysis: {analysis}\\\\n\\\\nProvide your decision along with a brief explanation of your reasoning."}]
+16	generate_ideas	[{"role": "system", "content": "You are an expert in creative ideation and brainstorming."}, {"role": "user", "content": "Generate a diverse set of creative ideas for the following prompt:\\\\n\\\\nPrompt: {prompt}\\\\n\\\\nProvide your ideas as a numbered list, aiming for originality and variety."}]
+17	explore_implications	[{"role": "system", "content": "You are an expert in exploring the implications and potential impacts of ideas."}, {"role": "user", "content": "Explore the potential implications and impacts of the following ideas:\\\\n\\\\nPrompt: {prompt}\\\\n\\\\nIdeas: {ideas}\\\\n\\\\nProvide your analysis for each idea, considering both positive and negative potential outcomes."}]
+18	form_new_concept	[{"role": "system", "content": "You are an expert in synthesizing ideas into novel concepts or solutions."}, {"role": "user", "content": "Form a new concept or solution by combining and refining the following ideas and their implications:\\\\n\\\\nPrompt: {prompt}\\\\n\\\\nIdeas: {ideas}\\\\n\\\\nImplications: {implications}\\\\n\\\\nDescribe your new concept or solution, explaining how it addresses the original prompt and incorporates elements from the generated ideas."}]
+19	analyze_information	[{"role": "system", "content": "You are an expert in analyzing and breaking down complex information."}, {"role": "user", "content": "Analyze the following information, identifying key points, assumptions, and potential biases:\\\\n\\\\nInformation: {information}\\\\n\\\\nProvide a structured analysis of the given information."}]
+20	evaluate_evidence	[{"role": "system", "content": "You are an expert in evaluating evidence and assessing its reliability and relevance."}, {"role": "user", "content": "Evaluate the evidence presented in the following information and analysis:\\\\n\\\\nInformation: {information}\\\\n\\\\nAnalysis: {analysis}\\\\n\\\\nAssess the strength, reliability, and relevance of the evidence, noting any potential weaknesses or gaps."}]
+21	form_conclusion	[{"role": "system", "content": "You are an expert in forming logical conclusions based on analyzed information and evaluated evidence."}, {"role": "user", "content": "Form a conclusion or argument based on the following information, analysis, and evidence evaluation:\\\\n\\\\nInformation: {information}\\\\n\\\\nAnalysis: {analysis}\\\\n\\\\nEvidence Evaluation: {evaluation}\\\\n\\\\nProvide a well-reasoned conclusion or argument, explicitly connecting it to the analyzed information and evaluated evidence."}]
 \.
 
 
@@ -551,14 +919,14 @@ COPY public.conversation_templates (id, name, template) FROM stdin;
 -- Name: ai_responses_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.ai_responses_id_seq', 4, true);
+SELECT pg_catalog.setval('public.ai_responses_id_seq', 5, true);
 
 
 --
 -- Name: conversation_templates_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.conversation_templates_id_seq', 8, true);
+SELECT pg_catalog.setval('public.conversation_templates_id_seq', 21, true);
 
 
 --
@@ -591,8 +959,4 @@ ALTER TABLE ONLY public.conversation_templates
 
 CREATE TRIGGER ai_response_trigger BEFORE INSERT OR UPDATE ON public.ai_responses FOR EACH ROW EXECUTE FUNCTION public.update_ai_response();
 
-
---
--- PostgreSQL database dump complete
---
 
