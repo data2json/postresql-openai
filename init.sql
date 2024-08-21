@@ -1,4 +1,3 @@
-
 --
 -- Name: plpython3u; Type: EXTENSION; Schema: -; Owner: -
 --
@@ -318,6 +317,75 @@ ALTER FUNCTION public.decision_making_workflow(input_scenario text) OWNER TO pos
 --
 
 COMMENT ON FUNCTION public.decision_making_workflow(input_scenario text) IS 'This function encapsulates a decision-making workflow, generating options, analyzing pros and cons, and forming a decision.';
+
+
+--
+-- Name: enhanced_logical_reasoning_workflow(text); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE FUNCTION public.enhanced_logical_reasoning_workflow(input_problem text) RETURNS TABLE(original_problem text, detailed_analysis text, step_by_step_reasoning text, critical_evaluation text, final_conclusion text)
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+    RETURN QUERY
+    WITH RECURSIVE
+    input_data AS (
+        SELECT input_problem AS context
+    ),
+    detailed_analysis AS (
+        SELECT build_and_submit_conversation('detailed_problem_analysis', (
+            json_build_object(
+                'problem', (SELECT context FROM input_data),
+                'language', 'en'
+            )
+        )::text) AS analysis
+    ),
+    step_by_step_reasoning AS (
+        SELECT build_and_submit_conversation('step_by_step_reasoning', (
+            json_build_object(
+                'problem', (SELECT context FROM input_data),
+                'analysis', (SELECT analysis FROM detailed_analysis),
+                'language', 'en'
+            )
+        )::text) AS reasoning
+    ),
+    critical_evaluation AS (
+        SELECT build_and_submit_conversation('critical_evaluation', (
+            json_build_object(
+                'problem', (SELECT context FROM input_data),
+                'reasoning', (SELECT reasoning FROM step_by_step_reasoning),
+                'language', 'en'
+            )
+        )::text) AS evaluation
+    ),
+    final_conclusion AS (
+        SELECT build_and_submit_conversation('form_final_conclusion', (
+            json_build_object(
+                'problem', (SELECT context FROM input_data),
+                'analysis', (SELECT analysis FROM detailed_analysis),
+                'reasoning', (SELECT reasoning FROM step_by_step_reasoning),
+                'evaluation', (SELECT evaluation FROM critical_evaluation),
+                'language', 'en'
+            )
+        )::text) AS conclusion
+    )
+    SELECT
+        (SELECT context FROM input_data) AS original_problem,
+        (SELECT analysis FROM detailed_analysis) AS detailed_analysis,
+        (SELECT reasoning FROM step_by_step_reasoning) AS step_by_step_reasoning,
+        (SELECT evaluation FROM critical_evaluation) AS critical_evaluation,
+        (SELECT conclusion FROM final_conclusion) AS final_conclusion;
+END;
+$$;
+
+
+ALTER FUNCTION public.enhanced_logical_reasoning_workflow(input_problem text) OWNER TO postgres;
+
+--
+-- Name: FUNCTION enhanced_logical_reasoning_workflow(input_problem text); Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON FUNCTION public.enhanced_logical_reasoning_workflow(input_problem text) IS 'This function implements an enhanced logical reasoning workflow, incorporating detailed analysis, step-by-step reasoning, critical evaluation, and a final conclusion formation.';
 
 
 --
@@ -912,6 +980,10 @@ COPY public.conversation_templates (id, name, template) FROM stdin;
 19	analyze_information	[{"role": "system", "content": "You are an expert in analyzing and breaking down complex information."}, {"role": "user", "content": "Analyze the following information, identifying key points, assumptions, and potential biases:\\\\n\\\\nInformation: {information}\\\\n\\\\nProvide a structured analysis of the given information."}]
 20	evaluate_evidence	[{"role": "system", "content": "You are an expert in evaluating evidence and assessing its reliability and relevance."}, {"role": "user", "content": "Evaluate the evidence presented in the following information and analysis:\\\\n\\\\nInformation: {information}\\\\n\\\\nAnalysis: {analysis}\\\\n\\\\nAssess the strength, reliability, and relevance of the evidence, noting any potential weaknesses or gaps."}]
 21	form_conclusion	[{"role": "system", "content": "You are an expert in forming logical conclusions based on analyzed information and evaluated evidence."}, {"role": "user", "content": "Form a conclusion or argument based on the following information, analysis, and evidence evaluation:\\\\n\\\\nInformation: {information}\\\\n\\\\nAnalysis: {analysis}\\\\n\\\\nEvidence Evaluation: {evaluation}\\\\n\\\\nProvide a well-reasoned conclusion or argument, explicitly connecting it to the analyzed information and evaluated evidence."}]
+22	detailed_problem_analysis	[{"role": "system", "content": "You are an expert in logical reasoning and problem analysis. Your task is to provide a detailed analysis of the given problem, including its context, key components, and potential implications."}, {"role": "user", "content": "Analyze the following problem in detail:\\n\\nProblem: {problem}\\n\\nProvide your analysis in the following format:\\n1. Problem Statement\\n2. Context and Background\\n3. Key Components\\n4. Potential Implications\\n5. Relevant Principles or Theories"}]
+23	step_by_step_reasoning	[{"role": "system", "content": "You are an expert in logical reasoning and critical thinking. Your task is to provide a step-by-step reasoning process for the given problem, based on the provided analysis."}, {"role": "user", "content": "Provide a step-by-step reasoning process for the following problem and analysis:\\n\\nProblem: {problem}\\n\\nAnalysis: {analysis}\\n\\nFollow these guidelines:\\n1. Label each premise (P1, P2, etc.)\\n2. Break down your reasoning into clear, labeled steps (Step 1, Step 2, etc.)\\n3. Explicitly reference previous steps or premises when building on them\\n4. Consider quantifiers carefully (e.g., 'all' vs 'some')\\n5. Provide your reasoning in a clear, structured format"}]
+24	critical_evaluation	[{"role": "system", "content": "You are an expert in critical thinking and logical analysis. Your task is to critically evaluate the reasoning provided for the given problem."}, {"role": "user", "content": "Critically evaluate the following reasoning for the given problem:\\n\\nProblem: {problem}\\n\\nReasoning: {reasoning}\\n\\nProvide your evaluation in the following format:\\n1. Strengths of the Reasoning\\n2. Weaknesses or Potential Flaws\\n3. Alternative Viewpoints\\n4. Assumptions Made\\n5. Suggestions for Improvement"}]
+25	form_final_conclusion	[{"role": "system", "content": "You are an expert in logical reasoning and critical thinking. Your task is to form a final conclusion based on the provided problem, analysis, reasoning, and evaluation."}, {"role": "user", "content": "Form a final conclusion for the following problem, considering the provided analysis, reasoning, and evaluation:\\n\\nProblem: {problem}\\n\\nAnalysis: {analysis}\\n\\nReasoning: {reasoning}\\n\\nEvaluation: {evaluation}\\n\\nProvide your conclusion in the following format:\\n1. Summary of Key Points\\n2. Logical Conclusion\\n3. Confidence Level (High, Medium, Low)\\n4. Potential Implications\\n5. Areas for Further Investigation\\n\\nFor verification tasks, clearly state whether the conclusion is [Correct], [Incorrect], or [Unknown]."}]
 \.
 
 
@@ -926,7 +998,7 @@ SELECT pg_catalog.setval('public.ai_responses_id_seq', 5, true);
 -- Name: conversation_templates_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.conversation_templates_id_seq', 21, true);
+SELECT pg_catalog.setval('public.conversation_templates_id_seq', 25, true);
 
 
 --
@@ -959,4 +1031,8 @@ ALTER TABLE ONLY public.conversation_templates
 
 CREATE TRIGGER ai_response_trigger BEFORE INSERT OR UPDATE ON public.ai_responses FOR EACH ROW EXECUTE FUNCTION public.update_ai_response();
 
+
+--
+-- PostgreSQL database dump complete
+--
 
