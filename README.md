@@ -1,7 +1,25 @@
 # PostgreSQL OpenAI Integration
 
-This project integrates OpenAI's GPT models with PostgreSQL, allowing for AI-powered responses directly within a PostgreSQL database.
+# Project Overview
 
+- Integrates AI models with PostgreSQL for enhanced database capabilities:
+  - OpenAI's GPT models
+  - LLAMA-3.1 (via OpenVLLM for local deployment)
+
+- Key Components:
+  - pgVector: Enables efficient vector operations in PostgreSQL
+  - sentence-transformers: Facilitates text embedding and semantic analysis
+
+- Core Functionalities:
+  - AI-powered responses directly within PostgreSQL database
+  - Semantic clustering capabilities on PostgreSQL
+
+- Optional Features:
+  - pRESTd integration for direct REST API access
+
+- Advanced Use Cases:
+  - Templating support for customized AI interactions
+  - Chained Conversations demonstrated for complex query handling
 ## Features
 
 - Custom PostgreSQL database with Python (plpython3u) extension
