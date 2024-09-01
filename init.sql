@@ -1,4 +1,22 @@
 --
+-- PostgreSQL database dump
+--
+
+-- Dumped from database version 16.4 (Debian 16.4-1.pgdg120+1)
+-- Dumped by pg_dump version 16.4 (Debian 16.4-1.pgdg120+1)
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
+SET check_function_bodies = false;
+SET xmloption = content;
+SET client_min_messages = warning;
+SET row_security = off;
+
+--
 -- Name: plpython3u; Type: EXTENSION; Schema: -; Owner: -
 --
 
@@ -10,6 +28,20 @@ CREATE EXTENSION IF NOT EXISTS plpython3u WITH SCHEMA pg_catalog;
 --
 
 COMMENT ON EXTENSION plpython3u IS 'PL/Python3U untrusted procedural language';
+
+
+--
+-- Name: vector; Type: EXTENSION; Schema: -; Owner: -
+--
+
+CREATE EXTENSION IF NOT EXISTS vector WITH SCHEMA public;
+
+
+--
+-- Name: EXTENSION vector; Type: COMMENT; Schema: -; Owner: 
+--
+
+COMMENT ON EXTENSION vector IS 'vector data type and ivfflat and hnsw access methods';
 
 
 --
@@ -387,6 +419,30 @@ ALTER FUNCTION public.enhanced_logical_reasoning_workflow(input_problem text) OW
 
 COMMENT ON FUNCTION public.enhanced_logical_reasoning_workflow(input_problem text) IS 'This function implements an enhanced logical reasoning workflow, incorporating detailed analysis, step-by-step reasoning, critical evaluation, and a final conclusion formation.';
 
+
+--
+-- Name: generate_sentence_embedding(text); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE FUNCTION public.generate_sentence_embedding(sentence text) RETURNS public.vector
+    LANGUAGE plpython3u IMMUTABLE
+    AS $$
+    from sentence_transformers import SentenceTransformer
+    import numpy as np
+
+    # Initialize the model (this will be cached between function calls)
+    if 'model' not in GD:
+        GD['model'] = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
+
+    # Generate the embedding
+    embedding = GD['model'].encode([sentence])[0]
+
+    # Convert the numpy array to a list
+    return embedding.tolist()
+$$;
+
+
+ALTER FUNCTION public.generate_sentence_embedding(sentence text) OWNER TO postgres;
 
 --
 -- Name: get_input_context(text); Type: FUNCTION; Schema: public; Owner: postgres
@@ -933,6 +989,41 @@ COMMENT ON VIEW public.problem_solving_workflow IS 'This view encapsulates a pro
 
 
 --
+-- Name: sentences; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.sentences (
+    id integer NOT NULL,
+    content text NOT NULL,
+    embedding public.vector(384) GENERATED ALWAYS AS (public.generate_sentence_embedding(content)) STORED
+);
+
+
+ALTER TABLE public.sentences OWNER TO postgres;
+
+--
+-- Name: sentences_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.sentences_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.sentences_id_seq OWNER TO postgres;
+
+--
+-- Name: sentences_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.sentences_id_seq OWNED BY public.sentences.id;
+
+
+--
 -- Name: ai_responses id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -944,6 +1035,13 @@ ALTER TABLE ONLY public.ai_responses ALTER COLUMN id SET DEFAULT nextval('public
 --
 
 ALTER TABLE ONLY public.conversation_templates ALTER COLUMN id SET DEFAULT nextval('public.conversation_templates_id_seq'::regclass);
+
+
+--
+-- Name: sentences id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.sentences ALTER COLUMN id SET DEFAULT nextval('public.sentences_id_seq'::regclass);
 
 
 --
@@ -988,6 +1086,19 @@ COPY public.conversation_templates (id, name, template) FROM stdin;
 
 
 --
+-- Data for Name: sentences; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.sentences (id, content) FROM stdin;
+1	This is an example sentence
+2	This is an example sentence
+3	This is an example sentence
+4	This is an example sentence
+5	This is an example short sentence.
+\.
+
+
+--
 -- Name: ai_responses_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
@@ -999,6 +1110,13 @@ SELECT pg_catalog.setval('public.ai_responses_id_seq', 5, true);
 --
 
 SELECT pg_catalog.setval('public.conversation_templates_id_seq', 25, true);
+
+
+--
+-- Name: sentences_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.sentences_id_seq', 5, true);
 
 
 --
@@ -1023,6 +1141,21 @@ ALTER TABLE ONLY public.conversation_templates
 
 ALTER TABLE ONLY public.conversation_templates
     ADD CONSTRAINT conversation_templates_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: sentences sentences_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.sentences
+    ADD CONSTRAINT sentences_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: sentences_embedding_idx; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX sentences_embedding_idx ON public.sentences USING ivfflat (embedding public.vector_cosine_ops);
 
 
 --
