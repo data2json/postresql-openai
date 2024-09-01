@@ -1,23 +1,4 @@
---
--- PostgreSQL database dump
---
 
--- Dumped from database version 16.4 (Debian 16.4-1.pgdg120+1)
--- Dumped by pg_dump version 16.4 (Debian 16.4-1.pgdg120+1)
-
-SET statement_timeout = 0;
-SET lock_timeout = 0;
-SET idle_in_transaction_session_timeout = 0;
-SET client_encoding = 'UTF8';
-SET standard_conforming_strings = on;
-SELECT pg_catalog.set_config('search_path', '', false);
-SET check_function_bodies = false;
-SET xmloption = content;
-SET client_min_messages = warning;
-SET row_security = off;
-
---
--- Name: plpython3u; Type: EXTENSION; Schema: -; Owner: -
 --
 
 CREATE EXTENSION IF NOT EXISTS plpython3u WITH SCHEMA pg_catalog;
@@ -1050,6 +1031,8 @@ ALTER TABLE ONLY public.sentences ALTER COLUMN id SET DEFAULT nextval('public.se
 
 COPY public.ai_responses (id, input_text, ai_response) FROM stdin;
 5	Why is the sky blue?	The sky appears blue due to a phenomenon called Rayleigh scattering. When sunlight enters Earth's atmosphere, it encounters tiny molecules of gases such as nitrogen and oxygen. These molecules scatter the shorter, blue wavelengths of light more than the longer, red wavelengths, giving the sky its blue color.
+6	Why is the sky blue?	Error calling OpenAI API: Request timed out.
+7	Why is the sky blue?	The sky appears blue due to a phenomenon called Rayleigh scattering, where shorter (blue) wavelengths of light are scattered more than longer (red) wavelengths by the tiny molecules of gases in the Earth's atmosphere. This scattering effect gives the sky its blue color.
 \.
 
 
@@ -1091,10 +1074,6 @@ COPY public.conversation_templates (id, name, template) FROM stdin;
 
 COPY public.sentences (id, content) FROM stdin;
 1	This is an example sentence
-2	This is an example sentence
-3	This is an example sentence
-4	This is an example sentence
-5	This is an example short sentence.
 \.
 
 
@@ -1102,7 +1081,7 @@ COPY public.sentences (id, content) FROM stdin;
 -- Name: ai_responses_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.ai_responses_id_seq', 5, true);
+SELECT pg_catalog.setval('public.ai_responses_id_seq', 7, true);
 
 
 --
@@ -1116,7 +1095,7 @@ SELECT pg_catalog.setval('public.conversation_templates_id_seq', 25, true);
 -- Name: sentences_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.sentences_id_seq', 5, true);
+SELECT pg_catalog.setval('public.sentences_id_seq', 1, true);
 
 
 --
